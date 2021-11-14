@@ -1,4 +1,5 @@
-import { useContext } from "react";
+import { useCallback, useContext, useEffect } from "react";
+import { useParams } from "react-router";
 import {
   Card,
   CardContent,
@@ -10,12 +11,14 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Backdrop,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
-import { useHistory, useParams } from "react-router";
-import axios from "axios";
 
 import AuthContext from "../../store/user/AuthContext";
 import BookContext from "../../store/book/BookContext";
+import { useHttpClient } from "../../hook/HttpHook";
 import { BookItem } from "./BookItem";
 
 export const BookList = () => {
@@ -23,23 +26,46 @@ export const BookList = () => {
   const bookCtx = useContext(BookContext);
   const books = bookCtx.items;
   const { userId } = useParams();
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
   let updatedBooks = books;
   if(userId) {
     updatedBooks = books.filter((book) => book.creator === userId);
   }
+  // const getBookList = useCallback(async() => {
+  //   const response = await sendRequest(
+  //     'http://localhost:8080/api/books'
+  //   );
+  //   const responseData = response.books;
+  //   bookCtx.replaceItemsToBookHandler(responseData);
+  // },[bookCtx, sendRequest]);
+
   const bookItemRemoveHandler = async (id) => {
-    // console.log('****** checking ID ', id);
-    await axios.delete('http://localhost:8080/api/books/'+id,
-    {
-      headers: {
-        Authorization: `Bearer ${auth.token}`,
-      }
-    })
+    clearError();
+    try {
+    await sendRequest(`http://localhost:8080/api/books/${id}`, 'DELETE', null, {
+      Authorization: `Bearer ${auth.token}`
+    });
+    } catch(err) {
+
+    }
     bookCtx.removeItem(id);
   }
 
+  // useEffect(() => {
+  //   getBookList()
+  // }, [getBookList])
+
   return (
     <Container maxWidth="lg" component="main">
+      {isLoading && (
+        <Backdrop
+          sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={isLoading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
+      {error && <Alert severity="error">{error}</Alert>}      
       { (!updatedBooks || updatedBooks.length === 0) && (
       <Card sx={{ minWidth: 275 }}>
         <CardContent align="center">

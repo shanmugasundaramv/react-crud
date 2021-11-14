@@ -1,17 +1,26 @@
-import { Button, Box, Container, TextField } from "@mui/material";
 import { useContext, useState } from "react";
-import { v4 as uuid } from "uuid";
 import { useHistory, useParams } from "react-router";
-import axios from "axios";
+import { v4 as uuid } from "uuid";
+import {
+  Button,
+  Box,
+  Container,
+  TextField,
+  Backdrop,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
 
 import BookContext from "../../store/book/BookContext";
 import AuthContext from "../../store/user/AuthContext";
+import { useHttpClient } from "../../hook/HttpHook";
 
 export const Create = (props) => {
   const bookCtx = useContext(BookContext);
   const auth = useContext(AuthContext);
   const history = useHistory();
   const { bookId } = useParams();
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const bookDetail = bookCtx.items.find((item) => item.id === bookId);
   const [book, setBook] = useState(() => {
     return {
@@ -35,50 +44,33 @@ export const Create = (props) => {
   };
 
   const addBookData = async (book) => {
-    const sendRequest = async () => {
-      const response = await axios.post(
-        "http://localhost:8080/api/books",
-        book,
-        {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-          }
-        }
-      );
-      if (response.statusText) {
-        bookCtx.addItem({ ...book });
-        history.push(`/books/${auth.userId}`);
-      } else {
-        throw new Error("Adding book data failed.");
-      }
-    };
     try {
-      await sendRequest();
+      clearError();
+      await sendRequest("http://localhost:8080/api/books", "POST", book, {
+        Authorization: `Bearer ${auth.token}`,
+        "Content-Type": "application/json",
+      });
+      bookCtx.addItem({ ...book });
+      history.push(`/books/${auth.userId}`);
     } catch (error) {
       console.log(error.message);
     }
   };
 
   const updateBookData = async (book, bookId) => {
-    const sendRequest = async () => {
-      const response = await axios.put(
+    try {
+      clearError();
+      await sendRequest(
         `http://localhost:8080/api/books/${bookId}`,
+        "PUT",
         book,
         {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-          }
+          Authorization: `Bearer ${auth.token}`,
+          "Content-Type": "application/json",
         }
       );
-      if (response.statusText) {
-        bookCtx.updateItem({ ...book }, bookId);
-        history.push(`/books/${auth.userId}`);
-      } else {
-        throw new Error("Updating book data failed.");
-      }
-    };
-    try {
-      await sendRequest();
+      bookCtx.updateItem({ ...book }, bookId);
+      history.push(`/books/${auth.userId}`);
     } catch (error) {
       console.log(error.message);
     }
@@ -121,6 +113,15 @@ export const Create = (props) => {
 
   return (
     <Container maxWidth="sm" component="main">
+      {isLoading && (
+        <Backdrop
+          sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={isLoading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
+      {error && <Alert severity="error">{error}</Alert>}
       <Box
         component="form"
         onSubmit={formSubmissionHandler}

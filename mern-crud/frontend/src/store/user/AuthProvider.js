@@ -1,24 +1,19 @@
-import axios from 'axios';
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import AuthContext from './AuthContext';
 
 let logoutTimer;
 
 const AuthProvider = (props) => {
-    // const [isLoggedIn, setIsLoggedIn] = useState(false);
+
     const [token, setToken] = useState(false);
     const [tokenExpirationDate, setTokenExpirationDate] = useState();    
     const [userId, setUserId] = useState(false);
     const history = useHistory();
-    // const login = uid => {
-    //   setIsLoggedIn(true);
-    //   setUserId(uid);
-    // };
+
     const login = useCallback((uid, token, expirationDate) => {
       setToken(token);
       setUserId(uid);
-      // console.log('****** inside  login ', uid, ' -- ', token);
       const tokenExpirationDate =
         expirationDate || new Date(new Date().getTime() + 1000 * 60 * 60);
       setTokenExpirationDate(tokenExpirationDate);
@@ -48,10 +43,9 @@ const AuthProvider = (props) => {
         clearTimeout(logoutTimer);
       }
     }, [token, logout, tokenExpirationDate]);
-  
+
     useEffect(() => {
       const storedData = JSON.parse(localStorage.getItem('userData'));
-      // console.log('****** get storedData ', storedData);
       if (
         storedData &&
         storedData.token &&

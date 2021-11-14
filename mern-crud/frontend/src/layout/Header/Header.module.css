@@ -3,6 +3,9 @@ a.link {
     text-decoration: none;
     margin-right: 50px;
 }
+a.active {
+    font-weight: bolder;
+}
 a.login {
     color: #fff;
     border: 1px solid #fff;

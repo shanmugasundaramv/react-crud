@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { useEffect, useReducer, useCallback } from 'react';
 import { useHttpClient } from '../../hook/HttpHook';
 import BookContext from './BookContext';
@@ -26,22 +25,22 @@ const bookReducer = (state, action) => {
 };
 
 const BookProvider = (props) => {
-  // const { sendRequest } = useHttpClient();
+  const { sendRequest } = useHttpClient();
   const fetchBookData = useCallback(async() => {
   // const fetchBookData = async () => {
-    const responseData = await axios.get("http://localhost:8080/api/books").then((response) => {
-      console.log('***** fetchBookData inside provider', response.data);
-      return response.data.books;
-    });
-    // const response = await sendRequest(
-    //   'http://localhost:8080/api/books'
-    // );
-    // const responseData = response.books;
+    // const responseData = await axios.get("http://localhost:8080/api/books").then((response) => {
+    //   console.log('***** fetchBookData inside provider', response.data);
+    //   return response.data.books;
+    // });
+    const response = await sendRequest(
+      'http://localhost:8080/api/books'
+    );
+    const responseData = response.books;
     dispatchBookAction({ type: 'REPLACE', items: responseData });
-  }, []);
+  }, [sendRequest]);
 
   useEffect(()=> {
-    fetchBookData()
+    fetchBookData() 
   },[fetchBookData]);
 
   const [bookState, dispatchBookAction] = useReducer(

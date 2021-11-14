@@ -12,6 +12,7 @@ const getBooks = async (req, res, next) => {
   try {
     books = await Book.find();
   } catch (err) {
+    console.log('****** err ', err);
     const error = new HttpError(
       'Something went wrong, could not find a book.',
       500
@@ -57,12 +58,13 @@ const getBooksByUserId = async (req, res, next) => {
 
 const createBook = async (req, res, next) => {
   const errors = validationResult(req);
+  // console.log('****** errors ', errors);
   if (!errors.isEmpty()) {
     return next(
       new HttpError('Invalid inputs passed, please check your data.', 422)
     );
   }
-console.log('****** req.body ', req.body)
+
   const { title, subtitle, author, price, description, creator } = req.body;
   const _id = req.body.id;
   const createdBook = new Book({
@@ -74,7 +76,6 @@ console.log('****** req.body ', req.body)
     description,
     creator
   });
-console.log('****** createdBook ', createdBook);
   let user;
   try {
     user = await User.findById(creator);
@@ -122,7 +123,6 @@ const updateBook = async (req, res, next) => {
 
   const { title, subtitle, author, price, description } = req.body;
   const bookId = req.params.bookId;
-  console.log('****** bookId ', bookId);
   let book;
   try {
     book = await Book.findById(bookId);

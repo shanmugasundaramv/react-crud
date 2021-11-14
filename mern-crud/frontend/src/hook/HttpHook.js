@@ -7,7 +7,10 @@ export const useHttpClient = () => {
   const sendRequest = useCallback(
     async (url, method = 'GET', body = null, headers = {}) => {
       setIsLoading(true);
-
+      // console.log('****** body ', body);
+      if(body) {
+        body = JSON.stringify(body);
+      }
       try {
         const response = await fetch(url, {
           method,

@@ -1,38 +1,42 @@
 import { useContext } from "react";
-import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import CssBaseline from "@mui/material/CssBaseline";
-import TextField from "@mui/material/TextField";
-import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
-import { Link } from "react-router-dom";
-import axios from "axios";
-import AuthContext from "../../store/user/AuthContext";
 import { useHistory } from "react-router";
+import { Link } from "react-router-dom";
+import {
+  Avatar,
+  Button,
+  CssBaseline,
+  TextField,
+  Grid,
+  Box,
+  Typography,
+  Container,
+  Backdrop,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+
+import AuthContext from "../../store/user/AuthContext";
+import { useHttpClient } from "../../hook/HttpHook";
 
 const Register = () => {
   const auth = useContext(AuthContext);
   const history = useHistory();
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
 
   const registerRequest = async (user) => {
-    const sendRequest = async () => {
-      const response = await axios.post(
-        "http://localhost:8080/api/users/signup",
-        user
-      );
-      // console.log("****** register response ", response);
-      if (response.statusText) {
-        auth.login(response.data.id, response.data.token);
-        history.push("/books");
-      } else {
-        throw new Error("Signing up failed.");
-      }
-    };
     try {
-      await sendRequest();
+      clearError();
+      const response = await sendRequest(
+        "http://localhost:8080/api/users/signup",
+        "POST",
+        user,
+        {
+          "Content-Type": "application/json",
+        }
+      );
+      auth.login(response.id, response.token);
+      history.push("/books");
     } catch (error) {
       console.log(error.message);
     }
@@ -52,6 +56,14 @@ const Register = () => {
 
   return (
     <Container component="main" maxWidth="xs">
+      {isLoading && (
+        <Backdrop
+          sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={isLoading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
       <CssBaseline />
       <Box
         sx={{
@@ -67,6 +79,7 @@ const Register = () => {
         <Typography component="h1" variant="h5">
           Sign up
         </Typography>
+        {error && <Alert severity="error">{error}</Alert>}
         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
